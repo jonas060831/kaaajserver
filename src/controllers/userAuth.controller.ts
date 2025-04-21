@@ -7,6 +7,8 @@ import { usernameRegex, passwordRegex } from '../helpers/regex'
 
 // Define saltRounds as a number or undefined, use parseInt with fallback
 const saltRounds = process.env.SALT_ROUNDS ? parseInt(process.env.SALT_ROUNDS) : 10;
+// Ensure that JWT_SECRET is defined before using it
+const jwtSecret = process.env.JWT_SECRET;
 
 const index = async (req: Request, res: Response): Promise<void> => {
   try {
@@ -58,8 +60,7 @@ const signUp = async (req: Request, res: Response): Promise<any> => {
     //payload
     const payload = { username: user.username, _id: user.id, role: user.role }
 
-    // Ensure that JWT_SECRET is defined before using it
-    const jwtSecret = process.env.JWT_SECRET;
+
 
     //create the token
     const token :string = jwt.sign({ payload }, jwtSecret || 'secret', { expiresIn: '1d' })
@@ -79,7 +80,35 @@ const signUp = async (req: Request, res: Response): Promise<any> => {
   }
 }
 
+const signIn = async (req: Request, res: Response): Promise<any> => {
+  try {
+      const { username, password } = req.body
+
+      const user = await models.User.findOne({ username })
+
+      if(!user) return res.status(401).json({ error: 'Invalid credentials.' })
+
+      //there is a match check the password if its correct using bcrypt
+      const isPasswordCorrect = bcrypt.compareSync(password, user.hashedPassword)
+
+      //incorrect password
+      if(!isPasswordCorrect) return res.status(401).json({error: 'Invalid credentials.' })
+
+      //construct the payload
+      const payload = { username: user.username, _id: user.id, role: user.role }
+
+      //create the token
+      const token :string = jwt.sign({ payload }, jwtSecret || 'secret', { expiresIn: '1d' })
+
+      res.status(200).json({ token })
+
+  } catch (error :any) {
+    res.status(500).json({ error: error.message })
+  }
+}
+
 export default {
   index,
   signUp,
+  signIn
 };
