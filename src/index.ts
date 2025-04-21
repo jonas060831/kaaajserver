@@ -5,7 +5,7 @@ export const app = express();
 const PORT = process.env.PORT || 4000;
 
 app.get('/', (req: Request, res: Response) => {
-  res.send({message: 'Hello there'});
+  res.send({message: 'Welcome to KAAAJ API'});
 });
 
 // Only listen once and export the server
