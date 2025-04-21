@@ -38,8 +38,8 @@ describe('POST /api/auth/signup', () => {
     expect(newUser.username).toMatch(/^[^\s@]+@[^\s@]+\.[^\s@]+$/); //valid email
     expect(newUser.password.length).toBeGreaterThanOrEqual(8) //atleast 8 characters
     expect(newUser.password).toMatch(/[A-Z]/) //atleast 1 capital letter
-    expect(newUser.password).toMatch(/\d/); // At least one digit
-    expect(newUser.password).toMatch(/[!@#$%^&*()_\+\-\/\\<>,.;'\[\]{}|]/); //atleast one of these special characters
+    expect(newUser.password).toMatch(/\d/) // At least one digit
+    expect(newUser.password).toMatch(/[!@#$%^&*()_\+\-\/\\<>,.;'\[\]{}|]/) //atleast one of these special characters
     expect(response.body).toHaveProperty('token')
   }, 10000)
 })
