@@ -51,19 +51,17 @@ const signUp = async (req: Request, res: Response): Promise<any> => {
 
     // Ensure that JWT_SECRET is defined before using it
     const jwtSecret = process.env.JWT_SECRET;
-    if (!jwtSecret) {
-      throw new Error('JWT_SECRET environment variable is not defined.');
-    }
-
 
     //create the token
-    const token :string = jwt.sign({ payload }, jwtSecret)
+    const token :string = jwt.sign({ payload }, jwtSecret || 'secret', { expiresIn: '1d' })
 
     // send the token
     res.status(201).json({ token });
 
   } catch (error) {
     // Improved error handling with type assertion
+    console.error('Signup Error:', error);
+    
     if (error instanceof Error) {
       res.status(500).json({ error: error.message });
     } else {

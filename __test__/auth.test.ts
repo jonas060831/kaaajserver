@@ -1,8 +1,10 @@
-import { app} from '../src'
+import { app } from '../src'
 import { connectToDatabase } from '../src/database'
 import request from 'supertest'
 import mongoose from 'mongoose'
 import { MongoMemoryServer } from 'mongodb-memory-server'
+
+import {userProps} from '../src/helpers/user'
 
 let mongoServer: MongoMemoryServer
 
@@ -14,21 +16,27 @@ beforeAll(async () => {
 
   try {
     await mongoose.connect(mongoUri);
-    //console.info('Connected to MongoDB test databases');
+    //console.log('Connected to MongoDB test databases');
   } catch (error) {
     console.error('Database connection failed:', error);
     throw error;
   }
 })
 
+const newUser = {
+  username: 'test@test.com',
+  password: 'Test123!',
+  role: 'Guest'
+}
 
-describe('GET /', () => {
-  it('should return a Welcome Message', async () => {
-
-    const res = await request(app).get('/')
-    expect(res.status).toBe(200)
-    expect(res.body).toHaveProperty('message', 'Welcome to KAAAJ API')
-  })
+describe('POST /api/auth/signup', () => {
+  it('should return a token', async () => {
+    const response = await request(app)
+    .post('/api/auth/signup')
+    .send(newUser)
+    expect(response.status).toBe(201)
+    expect(response.body).toHaveProperty('token')
+  }, 20000)
 })
 
 
