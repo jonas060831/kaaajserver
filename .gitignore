@@ -1,0 +1,8 @@
+#third party
+node_modules
+
+#dist folder
+dist
+
+#environment variables
+.env
