@@ -3,7 +3,7 @@ import jwt, { JwtPayload } from 'jsonwebtoken'
 import { Request, Response, NextFunction } from 'express'
 
 export interface AuthenticatedRequest extends Request {
-  user?: any
+  user?: any //fix for now
 }
 
 export const verifyToken = (req: AuthenticatedRequest, res: Response, next: NextFunction):any => {

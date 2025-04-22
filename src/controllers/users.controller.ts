@@ -25,7 +25,7 @@ const profile = async (req: AuthenticatedRequest, res: Response) : Promise<any> 
     const { userId } = req.params
 
     //the userId from the params must match the authenticated user
-    if(req.user.payload._id !== userId) return res.status(403).json({ error: 'Unauthorized' })
+    if(req.user._id !== userId) return res.status(403).json({ error: 'Unauthorized' })
 
     const user = await models.User.findById(userId)
 

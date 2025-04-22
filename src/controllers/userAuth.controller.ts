@@ -63,7 +63,7 @@ const signUp = async (req: Request, res: Response): Promise<any> => {
 
 
     //create the token
-    const token :string = jwt.sign({ payload }, jwtSecret || 'secret', { expiresIn: '30m' })
+    const token :string = jwt.sign(payload , jwtSecret || 'secret', { expiresIn: '30m' })
 
     // send the token
     res.status(201).json({ token });
@@ -98,7 +98,7 @@ const signIn = async (req: Request, res: Response): Promise<any> => {
       const payload = { username: user.username, _id: user.id, role: user.role }
 
       //create the token
-      const token :string = jwt.sign({ payload }, jwtSecret || 'secret', { expiresIn: '30m' })
+      const token :string = jwt.sign(payload , jwtSecret || 'secret', { expiresIn: '30m' })
 
       res.status(200).json({ token })
 
