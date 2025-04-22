@@ -4,7 +4,7 @@ import request from 'supertest'
 import mongoose from 'mongoose'
 import { MongoMemoryServer } from 'mongodb-memory-server'
 
-import {userProps} from '../src/helpers/user'
+import { userProps} from '../src/helpers/user'
 
 let mongoServer: MongoMemoryServer
 
@@ -29,8 +29,14 @@ const newUser = {
   role: 'Guest'
 }
 
-describe('POST /api/auth/signup', () => {
-  it('should return a token', async () => {
+const madeUpUser = {
+  username: 'nonexistent@test.com',
+  password: 'ValidPass123!',
+  role: 'Guest'
+}
+
+describe('POST Signup Route', () => {
+  it('should return a token for a successful sign up', async () => {
     const response = await request(app)
     .post('/api/auth/signup')
     .send(newUser)
@@ -45,6 +51,50 @@ describe('POST /api/auth/signup', () => {
 })
 
 
+describe('POST Signin Route', () => {
+  it('should return a token if credentials are valid', async () => {
+
+    //sign up the user
+    await request(app)
+    .post('/api/auth/signup')
+    .send(newUser)
+
+    const response = await request(app)
+    .post('/api/auth/signin')
+    .send({
+      username: newUser.username,
+      password: newUser.password
+    })
+    expect(response.status).toBe(200)
+    expect(response.body).toHaveProperty('token')
+    expect(typeof response.body.token).toBe('string')
+    }, 10000)
+
+  it('should return 401 if user does not exist', async () => {
+    const response = await request(app)
+    .post('/api/auth/signin')
+    .send(madeUpUser)
+    expect(response.status).toBe(401)
+    expect(response.body).not.toHaveProperty('token')
+  }, 10000)
+
+  it('should return 401 if password is incorrect', async () => {
+    //register
+    await request(app)
+    .post('/api/auth/signup')
+    .send(newUser)
+
+    //test a wrong password
+    const response: any = await request(app)
+    .post('/api/auth/signin')
+    .send({
+      username: newUser.username,
+      password: 'WrongPassword123!'
+    })
+    expect(response.status).toBe(401)
+    expect(response.body).not.toHaveProperty('token')
+  }, 10000)
+})
 
 afterAll(async () => {
   //Close MONGODB connection and stop server
