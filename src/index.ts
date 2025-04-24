@@ -3,7 +3,7 @@ import dotenv from 'dotenv'
 // Load environment variables
 dotenv.config()
 
-import express, { Request, Response } from 'express'
+import express, { Request, Response, NextFunction } from 'express'
 import cors from 'cors'
 import morgan from 'morgan'
 import routes from './routes'
@@ -14,6 +14,23 @@ let server: ReturnType<typeof app.listen> | null = null
 // Middlewares
 app.use(morgan('tiny'))
 app.use(express.json())
+
+//bots malicious scanner guard
+app.use((req: Request, res: Response, next: NextFunction): void => {
+  const blacklist: string[] = [
+    '.env', '.git', 'phpunit', 'eval-stdin.php',
+    'php-cgi', 'index.php', 'think', 'actuator',
+  ];
+
+  if (blacklist.some((path) => req.url.includes(path))) {
+    res.status(403).send('Forbidden');
+    return;
+  }
+
+  next();
+});
+
+// cors
 app.use(cors({
   origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
     const allowedOrigins: string[] = [
