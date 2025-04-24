@@ -20,6 +20,9 @@ app.use(cors({
       process.env.MAIN_SITE || 'http://localhost:5173',
       process.env.COMPANY_SITE || 'http://localhost:5174'
     ]
+
+    console.log('CORS request from origin:', origin)
+
     if (!origin || allowedOrigins.includes(origin)) {
       callback(null, true)
     } else {
