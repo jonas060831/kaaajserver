@@ -65,7 +65,7 @@ const signUp = async (req: Request, res: Response): Promise<any> => {
     //create the token
     const token :string = jwt.sign(payload , jwtSecret || 'secret', { expiresIn: '30m' })
 
-    // send the token
+    // send the tokensig
     res.status(201).json({ token });
 
   } catch (error) {
