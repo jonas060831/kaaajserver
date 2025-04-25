@@ -35,9 +35,9 @@ app.use(cors({
   origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
     const allowedOrigins: string[] = [
       process.env.MAIN_SITE || 'http://localhost:5173',
-      process.env.COMPANY_SITE || 'http://localhost:5174'
+      process.env.COMPANY_SITE || 'http://localhost:5174',
+      process.env.DEVELOPMENT_SITE || 'http://localhost:5175',
     ]
-    console.log(origin)
     if (!origin || allowedOrigins.includes(origin)) {
       callback(null, true)
     } else {
