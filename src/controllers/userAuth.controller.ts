@@ -1,4 +1,4 @@
-import { Request, Response } from 'express'
+import { Request, Response, RequestHandler } from 'express'
 import bcrypt from 'bcrypt'
 import jwt from 'jsonwebtoken'
 import models from '../models'
@@ -24,52 +24,62 @@ const index = async (req: Request, res: Response): Promise<void> => {
   }
 };
 
-const signUp = async (req: Request, res: Response): Promise<any> => {
+const signUp: RequestHandler = async (req: Request, res: Response): Promise<any> => {
   try {
-    const { username, password, role } = req.body;
+    const { username, password, role, personal, account } = req.body;
 
-    // TODO: Validate input (ensure fields are not empty)
-    if (!username || !password || !role) {
+    //console.log('Full body:', JSON.stringify(req.body, null, 2))
+
+    // Validate input
+    if (!username || !password || !role || !personal || !personal.firstName || !personal.lastName || !personal.middleName || !account.name) {
       return res.status(400).json({ error: 'All fields are required' });
     }
-    if(!usernameRegex.test(username)) return res.status(400).json({ error: 'Invalid Email Address' })
-
-    //i need to find a way where i can call a function and throw the specific error base on that string if it pass or fails
-
-    const testedPassword :string[] | boolean = passwordRegex(password); // returns string | boolean
-
-    if(testedPassword !== true) {
-      return res.status(400).json({ error: testedPassword })
+    if (!usernameRegex.test(username)) {
+      return res.status(400).json({ error: 'Invalid Email Address' });
     }
+
+    const testedPassword: string[] | boolean = passwordRegex(password);
+    if (testedPassword !== true) {
+      return res.status(400).json({ error: testedPassword });
+    }
+
     // Check if the user exists
     const existingUser = await models.User.findOne({ username });
-
     if (existingUser) {
       return res.status(409).json({ error: 'Username already taken.' });
     }
+
     // Hash the password
     const hashedPassword = await bcrypt.hash(password, saltRounds);
 
-    // Create the user if there's no existing data
+    // Create the user
     const user = await models.User.create({
       username,
       hashedPassword,
       role,
+      personal
     });
 
-    //payload
-    const payload = { username: user.username, _id: user.id, role: user.role }
+    // Create the first account for this user
+    const newAccount = await models.Account.create({
+      name: account.name,
+      owner: user._id
+    });
 
+    // Add the account to the user's accounts array
+    await user.accounts.push(newAccount._id);
+    await user.save(); // Save again after updating accounts a
 
+    // Create the token payload
+    const payload = { username: user.username, _id: user.id, role: user.role };
 
-    //create the token
-    const token :string = jwt.sign(payload , jwtSecret || 'secret', { expiresIn: '30m' })
+    // Create the JWT token
+    const token: string = jwt.sign(payload, jwtSecret || 'secret', { expiresIn: '30m' });
 
-    // send the tokensig
+    // Send the token
     res.status(201).json({ token });
 
   } catch (error) {
-    // Improved error handling with type assertion
     console.error('Signup Error:', error);
 
     if (error instanceof Error) {
@@ -79,6 +89,7 @@ const signUp = async (req: Request, res: Response): Promise<any> => {
     }
   }
 }
+
 
 const signIn = async (req: Request, res: Response): Promise<any> => {
   try {
@@ -98,11 +109,11 @@ const signIn = async (req: Request, res: Response): Promise<any> => {
       const payload = { username: user.username, _id: user.id, role: user.role }
 
       //create the token
-      const token :string = jwt.sign(payload , jwtSecret || 'secret', { expiresIn: '30m' })
+      const token :string = jwt.sign(payload , jwtSecret || 'secret', { expiresIn: '1h' })
 
       res.status(200).json({ token })
 
-  } catch (error :any) {
+  } catch (error: any) {
     res.status(500).json({ error: error.message })
   }
 }
