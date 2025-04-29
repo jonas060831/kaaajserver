@@ -5,7 +5,8 @@ const { Document, Schema, model  } = mongoose
 interface IAccount {
   name: string;
   identifier: string;
-  owner: mongoose.Types.ObjectId
+  owner: mongoose.Types.ObjectId;
+  live: boolean
 }
 
 const accountSchema = new Schema<IAccount>({
@@ -27,6 +28,11 @@ const accountSchema = new Schema<IAccount>({
     type: Schema.Types.ObjectId,
     ref: 'User',
     required: true
+  },
+  live: {
+    type: Boolean,
+    required: true,
+    default: false
   }
 }, { timestamps: true })
 
