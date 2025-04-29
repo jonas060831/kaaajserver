@@ -27,7 +27,7 @@ const profile = async (req: AuthenticatedRequest, res: Response) : Promise<any> 
     //the userId from the params must match the authenticated user
     if(req.user._id !== userId) return res.status(403).json({ error: 'Unauthorized' })
 
-    const user = await models.User.findById(userId)
+    const user = await models.User.findById(userId).populate('accounts.list');
 
     if(!user) return res.status(404).json({ error: 'User not found.' })
 
