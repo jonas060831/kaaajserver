@@ -17,6 +17,29 @@ const index = async (req: AuthenticatedRequest, res: Response): Promise<any> => 
   }
 }
 
+const addNew = async (req: AuthenticatedRequest, res: Response): Promise<any> => {
+  try {
+
+    const { name } = req.body
+    const newAccount = await models.Account.create({
+        name: name,
+        owner: req.user._id
+    })
+
+    const user = await models.User.findById(req.user._id)
+
+    if(!user) return res.status(401).json({ error: 'Unauthorized' })
+
+    // Update user's accounts
+    user.accounts.list.push(newAccount._id);
+    await user.save();
+
+    res.json(newAccount)
+  } catch (error: any) {
+    res.status(500).json({ error: error.message })
+  }
+}
+
 const accountById = async(req: AuthenticatedRequest, res: Response): Promise<any> => {
 
   try {
@@ -39,5 +62,6 @@ const accountById = async(req: AuthenticatedRequest, res: Response): Promise<any
 
 export default {
   index,
+  addNew,
   accountById
 }
