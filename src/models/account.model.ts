@@ -1,12 +1,12 @@
 import mongoose from 'mongoose'
-import crypto from 'crypto'  // Required for better randomness
-
-const { Schema, model } = mongoose
+import crypto from 'crypto'
+const { Document, Schema, model  } = mongoose
 
 interface IAccount {
   name: string;
   identifier: string;
   owner: mongoose.Types.ObjectId;
+  live: boolean
 }
 
 const accountSchema = new Schema<IAccount>({
@@ -20,20 +20,22 @@ const accountSchema = new Schema<IAccount>({
     required: true,
     unique: true,
     default: () => {
-      // Generate a more unique identifier using crypto.randomUUID() or crypto.randomBytes
-      const sec1 = crypto.randomBytes(2).toString('hex').toUpperCase();  // 4 characters
-      const sec2 = crypto.randomBytes(2).toString('hex').toUpperCase();  // 4 characters
-      const sec3 = crypto.randomBytes(2).toString('hex').toUpperCase();  // 4 characters
-      return `ACT-${sec1}-${sec2}-${sec3}`;
+      const randomHex = crypto.randomBytes(6).toString('hex').toUpperCase();
+      return `ACT-${randomHex.slice(0, 4)}-${randomHex.slice(4, 8)}-${randomHex.slice(8, 12)}`;
     }
   },
   owner: {
     type: Schema.Types.ObjectId,
     ref: 'User',
     required: true
+  },
+  live: {
+    type: Boolean,
+    required: true,
+    default: false
   }
 }, { timestamps: true })
 
-const Account = model<IAccount>('Account', accountSchema)
+const Account = model('Account', accountSchema)
 
 export default Account

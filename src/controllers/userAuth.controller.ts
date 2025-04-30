@@ -1,4 +1,5 @@
 import { Request, Response, RequestHandler } from 'express'
+import mongoose from 'mongoose'
 import bcrypt from 'bcrypt'
 import jwt from 'jsonwebtoken'
 import models from '../models'
@@ -25,61 +26,75 @@ const index = async (req: Request, res: Response): Promise<void> => {
 };
 
 const signUp: RequestHandler = async (req: Request, res: Response): Promise<any> => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
   try {
     const { username, password, role, personal, account } = req.body;
 
-    //console.log('Full body:', JSON.stringify(req.body, null, 2))
-
-    // Validate input
-    if (!username || !password || !role || !personal || !personal.firstName || !personal.lastName || !personal.middleName || !account.name) {
+    if (!username || !password || !role || !personal.firstName || !personal.lastName || !account.name) {
+      await session.abortTransaction();
+      session.endSession();
       return res.status(400).json({ error: 'All fields are required' });
     }
+
     if (!usernameRegex.test(username)) {
+      await session.abortTransaction();
+      session.endSession();
       return res.status(400).json({ error: 'Invalid Email Address' });
     }
 
     const testedPassword: string[] | boolean = passwordRegex(password);
     if (testedPassword !== true) {
+      await session.abortTransaction();
+      session.endSession();
       return res.status(400).json({ error: testedPassword });
     }
 
-    // Check if the user exists
-    const existingUser = await models.User.findOne({ username });
+    const existingUser = await models.User.findOne({ username }).session(session);
     if (existingUser) {
+      await session.abortTransaction();
+      session.endSession();
       return res.status(409).json({ error: 'Username already taken.' });
     }
 
-    // Hash the password
     const hashedPassword = await bcrypt.hash(password, saltRounds);
 
-    // Create the user
-    const user = await models.User.create({
-      username,
-      hashedPassword,
-      role,
-      personal
-    });
+    const user = await models.User.create(
+      [{
+        username,
+        hashedPassword,
+        role,
+        personal,
+        accounts: { list: [], default: null }
+      }],
+      { session }
+    ).then(res => res[0])
 
-    // Create the first account for this user
-    const newAccount = await models.Account.create({
-      name: account.name,
-      owner: user._id
-    });
+    const newAccount = await models.Account.create(
+      [{
+        name: account.name,
+        owner: user._id
+      }],
+      { session }
+    ).then(res => res[0]);
 
-    // Add the account to the user's accounts array
-    await user.accounts.push(newAccount._id);
-    await user.save(); // Save again after updating accounts a
+    // Update user's accounts
+    user.accounts.list.push(newAccount._id);
+    user.accounts.default = newAccount._id;
+    await user.save({ session });
 
-    // Create the token payload
+    await session.commitTransaction();
+    session.endSession();
+
     const payload = { username: user.username, _id: user.id, role: user.role };
-
-    // Create the JWT token
     const token: string = jwt.sign(payload, jwtSecret || 'secret', { expiresIn: '30m' });
 
-    // Send the token
     res.status(201).json({ token });
 
   } catch (error) {
+    await session.abortTransaction();
+    session.endSession();
     console.error('Signup Error:', error);
 
     if (error instanceof Error) {
@@ -88,7 +103,7 @@ const signUp: RequestHandler = async (req: Request, res: Response): Promise<any>
       res.status(500).json({ error: 'Unknown error occurred' });
     }
   }
-}
+};
 
 
 const signIn = async (req: Request, res: Response): Promise<any> => {

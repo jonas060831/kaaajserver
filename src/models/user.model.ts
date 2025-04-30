@@ -1,59 +1,67 @@
-import mongoose from 'mongoose'
+import mongoose from 'mongoose';
 
-const { Schema, model } = mongoose
+const { Schema, model } = mongoose;
 
-const userSchema = new Schema({
+// Interface for account references inside User
+interface IAccountRef {
+  default: mongoose.Types.ObjectId | null;
+  list: mongoose.Types.ObjectId[];
+}
+
+// Interface for User document
+interface IUser extends mongoose.Document {
+  username: string;
+  hashedPassword: string;
+  role: 'Admin' | 'Developer' | 'Guest' | 'Creator';
+  personal: {
+    firstName: string;
+    middleName?: string;
+    lastName: string;
+  };
+  accounts: IAccountRef;
+}
+
+// Function to format names properly
+const formatName = (val: string) =>
+  val
+    .split(' ')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .join(' ');
+
+const userSchema = new Schema<IUser>({
   username: { type: String, required: true },
   hashedPassword: { type: String, required: true },
   role: { type: String, required: true, enum: ['Admin', 'Developer', 'Guest', 'Creator'] },
   personal: {
-    firstName: {
-      type: String,
-      required: true,
-      trim: true,
-      set: (val: string) => {
-        return val
-          .split(' ')
-          .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-          .join(' ')
-      }
-    },
-    middleName: {
-      type: String,
-      trim: true,
-      default: null,
-      set: (val: string) => {
-        return val
-          .split(' ')
-          .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-          .join(' ')
-      }
-    },
-    lastName: {
-      type: String,
-      required: true,
-      trim: true,
-      set: (val: string) => {
-        return val
-          .split(' ')
-          .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-          .join(' ')
-      }
-    }
+    firstName: { type: String, required: true, trim: true, set: formatName },
+    middleName: { type: String, trim: true, default: null, set: formatName },
+    lastName: { type: String, required: true, trim: true, set: formatName }
   },
-  accounts: [{ type: Schema.Types.ObjectId, ref: 'Account' }]
-
+  accounts: {
+    default: { type: Schema.Types.ObjectId, ref: 'Account', default: null },
+    list: [{ type: Schema.Types.ObjectId, ref: 'Account', default: [] }] // ✅ Always initialize as empty array
+  }
 }, { timestamps: true });
 
-//do not return hashedPassword
+// Ensure hashedPassword is not returned in JSON responses
 userSchema.set('toJSON', {
-  transform: (document, returnedObject) => {
-    if (returnedObject.hashedPassword) {
-      delete returnedObject.hashedPassword
-    }
+  transform: (_, returnedObject) => {
+    delete returnedObject.hashedPassword;
   }
-})
+});
 
-const User = model('User', userSchema)
+// ✅ Ensure `accounts.default` is set automatically when an account is added
+userSchema.pre('save', function (next) {
+  if (!this.accounts) {
+    this.accounts = { default: null, list: [] }; // ✅ Always initialize
+  }
+  if (!this.accounts.default && this.accounts.list.length > 0) {
+    this.accounts.default = this.accounts.list[0];
+  }
+  next();
+});
 
-export default User
+// Create the User model
+const User = model<IUser>('User', userSchema);
+
+export default User;
