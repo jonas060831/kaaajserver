@@ -2,12 +2,31 @@ import mongoose from 'mongoose'
 import crypto from 'crypto'
 const { Document, Schema, model  } = mongoose
 
+
+interface ILocation {
+  addressLine1: string;
+  addressLine2?: string;
+  city: string;
+  state: string;
+  zipcode: string;
+}
+
 interface IAccount {
   name: string;
   identifier: string;
   owner: mongoose.Types.ObjectId;
-  live: boolean
+  live: boolean;
+  location: ILocation
 }
+
+
+const locationSchema = new Schema<ILocation>({
+  addressLine1: { type: String, required: true },
+  addressLine2: { type: String },
+  city: { type: String, required: true },
+  state: { type: String, required: true },
+  zipcode: { type: String, required: true },
+});
 
 const accountSchema = new Schema<IAccount>({
   name: {
@@ -33,6 +52,10 @@ const accountSchema = new Schema<IAccount>({
     type: Boolean,
     required: true,
     default: false
+  },
+  location: {
+    type: locationSchema,
+    required: true
   }
 }, { timestamps: true })
 

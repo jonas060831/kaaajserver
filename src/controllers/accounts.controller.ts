@@ -59,9 +59,41 @@ const accountById = async(req: AuthenticatedRequest, res: Response): Promise<any
   }
 }
 
+const edit = async (req: AuthenticatedRequest, res: Response): Promise<any> => {
+
+  try {
+    const { accountId } = req.params
+
+    //find via id
+    const account = await models.Account.findById(accountId)
+
+    if(!account) {
+      res.status(404)
+      throw new Error('Cannot find Account!')
+    }
+
+    //check permission
+    if(!account.owner.equals(req.user._id)) return res.status(403).send("Unauthorized!")
+
+    //permission granted
+    const updatedAccount = await models.Account.findByIdAndUpdate(
+      accountId,
+      req.body,
+      { new: true }
+    )
+
+    res.status(200).json(updatedAccount)
+
+  } catch (error: any) {
+    res.statusCode === 404 ? res.json({ error: error.message }) : res.json({ error: error.message })
+  }
+
+}
+
 
 export default {
   index,
   addNew,
-  accountById
+  accountById,
+  edit
 }
