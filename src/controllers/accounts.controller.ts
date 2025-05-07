@@ -75,6 +75,11 @@ const edit = async (req: AuthenticatedRequest, res: Response): Promise<any> => {
     //check permission
     if(!account.owner.equals(req.user._id)) return res.status(403).send("Unauthorized!")
 
+    //TODO if location is being edited use get its longitude and latitude as well
+    if(req.body.location) {
+      //googles geo location
+    }
+
     //permission granted
     const updatedAccount = await models.Account.findByIdAndUpdate(
       accountId,
