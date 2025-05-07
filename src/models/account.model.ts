@@ -9,6 +9,8 @@ interface ILocation {
   city: string;
   state: string;
   zipcode: string;
+  latitude: number;
+  longitude: number;
 }
 
 interface IAccount {
@@ -26,6 +28,8 @@ const locationSchema = new Schema<ILocation>({
   city: { type: String, required: true },
   state: { type: String, required: true },
   zipcode: { type: String, required: true },
+  latitude: { type: Number, min: -90, max: 90, required: false },
+  longitude: { type: Number, min: -180, max: 180, required: false },
 });
 
 const accountSchema = new Schema<IAccount>({
@@ -55,7 +59,7 @@ const accountSchema = new Schema<IAccount>({
   },
   location: {
     type: locationSchema,
-    required: true
+    required: false
   }
 }, { timestamps: true })
 

@@ -12,7 +12,7 @@ interface IAccountRef {
 interface IUser extends mongoose.Document {
   username: string;
   hashedPassword: string;
-  role: 'Admin' | 'Developer' | 'Guest' | 'Creator';
+  role: 'Admin' | 'Developer' | 'Guest' | 'Creator'| 'Proprietor' | 'Industrialist'; //Proprietor and Industrialist
   personal: {
     firstName: string;
     middleName?: string;
@@ -31,7 +31,7 @@ const formatName = (val: string) =>
 const userSchema = new Schema<IUser>({
   username: { type: String, required: true },
   hashedPassword: { type: String, required: true },
-  role: { type: String, required: true, enum: ['Admin', 'Developer', 'Guest', 'Creator'] },
+  role: { type: String, required: true, enum: ['Admin', 'Developer', 'Guest', 'Creator', 'Proprietor', 'Industrialist'] },
   personal: {
     firstName: { type: String, required: true, trim: true, set: formatName },
     middleName: { type: String, trim: true, default: null, set: formatName },
