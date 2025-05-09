@@ -48,6 +48,18 @@ app.use((req: Request, res: Response, next: NextFunction): void => {
   next()
 })
 
+// Middleware to log IP and device info
+app.use((req: Request, res: Response, next: NextFunction): void => {
+  const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress
+  const parser = new UAParser(req.headers['user-agent'])
+  const result = parser.getResult()
+  const deviceType = result.device.type || 'desktop'
+
+  console.log(`Incoming request from IP: ${ip}, Device: ${deviceType}`)
+
+  next()
+})
+
 // CORS configuration
 app.use(cors({
   origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
