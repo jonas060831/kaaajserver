@@ -7,6 +7,7 @@ import cors from 'cors'
 import morgan from 'morgan'
 import helmet from 'helmet'
 import rateLimit from 'express-rate-limit'
+import { UAParser } from 'ua-parser-js'
 import routes from './routes'
 
 export const app = express()
@@ -51,9 +52,10 @@ app.use((req: Request, res: Response, next: NextFunction): void => {
 // Middleware to log IP and device info
 app.use((req: Request, res: Response, next: NextFunction): void => {
   const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress
-  const parser = new UAParser(req.headers['user-agent'])
-  const result = parser.getResult()
-  const deviceType = result.device.type || 'desktop'
+  const userAgent = req.headers['user-agent'] || ''
+
+  const parser = new UAParser(userAgent)
+  const deviceType = parser.getDevice().type || 'desktop'
 
   console.log(`Incoming request from IP: ${ip}, Device: ${deviceType}`)
 
