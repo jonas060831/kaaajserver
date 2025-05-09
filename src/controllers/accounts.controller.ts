@@ -40,6 +40,31 @@ const addNew = async (req: AuthenticatedRequest, res: Response): Promise<any> =>
   }
 }
 
+const search = async (req: Request, res: Response): Promise<any> => {
+  const { role: queryRole } = req.query;
+
+  try {
+    //just getting all the display location that updated their location 
+    if (queryRole) {
+      const proprietors = await models.User.find({ role: queryRole }).populate("accounts.list");
+
+      // Flatten all account lists from each user, filter those with a location
+      const mergedAccountsWithLocation = proprietors.flatMap(user =>
+        Array.isArray(user.accounts.list)
+          ? user.accounts.list.filter((account: any) => account.location)
+          : []
+      );
+
+      res.json(mergedAccountsWithLocation);
+    } else {
+      res.status(400).json({ error: "Missing role query parameter" }); //for now we dont have to require this later
+    }
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+
 const accountById = async(req: AuthenticatedRequest, res: Response): Promise<any> => {
 
   try {
@@ -99,6 +124,7 @@ const edit = async (req: AuthenticatedRequest, res: Response): Promise<any> => {
 export default {
   index,
   addNew,
+  search,
   accountById,
   edit
 }
