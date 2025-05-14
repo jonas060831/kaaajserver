@@ -136,6 +136,9 @@ const signIn = async (req: Request, res: Response): Promise<any> => {
 const testEmail: RequestHandler = async (req: Request, res: Response): Promise<any> => {
 
   try {
+    const email = req.body
+
+    console.log(email)
 
     res.status(200).json({ message: "Email Sent via Nodemailer" })
 
