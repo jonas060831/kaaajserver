@@ -133,8 +133,20 @@ const signIn = async (req: Request, res: Response): Promise<any> => {
   }
 }
 
+const testEmail: RequestHandler = async (req: Request, res: Response): Promise<any> => {
+
+  try {
+
+    res.status(200).json({ message: "Email Sent via Nodemailer" })
+
+  } catch (error:any) {
+    res.status(500).json({ error: error.message })
+  }
+}
+
 export default {
   index,
   signUp,
-  signIn
+  signIn,
+  testEmail
 };
