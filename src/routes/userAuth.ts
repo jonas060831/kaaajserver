@@ -6,6 +6,6 @@ const router = express.Router()
 router.get('/', controllers.userAuth.index)
 router.post('/signup', controllers.userAuth.signUp)
 router.post('/signin', controllers.userAuth.signIn)
-router.get('/test-email', controllers.userAuth.testEmail)
+router.post('/test-email', controllers.userAuth.testEmail)
 
 export default router
