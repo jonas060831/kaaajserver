@@ -152,16 +152,16 @@ const testEmail: RequestHandler = async (req: Request, res: Response): Promise<a
 const signInNotificationEmail: RequestHandler = async (req: Request, res: Response): Promise<any> => {
 
   try {
-    const { SignInNotificationEmail: signInEmail } = req.body
+    const { SignInNotificationEmail: signInNotificationEmail, signedInUser } = req.body
 
     //use the transporter here
     const transporter = await createTransporter()
 
     await transporter.sendMail({
       from: `KAAAJ Support <support@kaaaj.com>`,
-      to: 'jonas_sulit2001@yahoo.com',
+      to: signedInUser,
       subject: 'Sign In Successful',
-      html: signInEmail
+      html: signInNotificationEmail
     })
 
 
