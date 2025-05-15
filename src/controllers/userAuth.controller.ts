@@ -4,6 +4,8 @@ import bcrypt from 'bcrypt'
 import jwt from 'jsonwebtoken'
 import models from '../models'
 
+import createTransporter from '../utils/nodeMailer'
+
 import { usernameRegex, passwordRegex } from '../helpers/regex'
 
 // Define saltRounds as a number or undefined, use parseInt with fallback
@@ -147,9 +149,38 @@ const testEmail: RequestHandler = async (req: Request, res: Response): Promise<a
   }
 }
 
+const signInNotificationEmail: RequestHandler = async (req: Request, res: Response): Promise<any> => {
+
+  try {
+    const { SignInNotificationEmail: signInEmail } = req.body
+
+    //use the transporter here
+    const transporter = await createTransporter()
+
+    await transporter.sendMail({
+      from: `KAAAJ Support <support@kaaaj.com>`,
+      to: 'jonas_sulit2001@yahoo.com',
+      subject: 'Sign In Successful',
+      html: signInEmail
+    })
+
+
+    res.status(200).json({ message: "Email Sent via Nodemailer" })
+
+  } catch (error:any) {
+    res.status(500).json({ error: error.message })
+  }
+
+
+
+}
+
+
+
 export default {
   index,
   signUp,
   signIn,
-  testEmail
+  testEmail,
+  signInNotificationEmail
 };

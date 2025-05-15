@@ -7,5 +7,7 @@ router.get('/', controllers.userAuth.index)
 router.post('/signup', controllers.userAuth.signUp)
 router.post('/signin', controllers.userAuth.signIn)
 router.post('/test-email', controllers.userAuth.testEmail)
+router.post('/signinnotificationemail', controllers.userAuth.signInNotificationEmail)
+
 
 export default router
